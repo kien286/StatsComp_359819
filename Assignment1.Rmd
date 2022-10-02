@@ -1,0 +1,19 @@
+---
+title: "Assignment1"
+output: html_document
+date: "2022-10-02"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Assignment 1
+
+First Assignment
+
+```{r cars}
+x = 2
+y = runif(100)
+```
+
