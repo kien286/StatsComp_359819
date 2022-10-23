@@ -1,0 +1,150 @@
+---
+title: "Assignment3"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Assignment 3
+First, define function m and how to generate Y
+
+```{r}
+m <- function(X){
+  return(sin(1/(X/3 + 0.1)))
+}
+
+generate_Y <- function(X){
+  noise <- rnorm(dim(x), 0, 1)
+  Y <- X + noise
+  return(Y)
+}
+
+ddm_ddx <- function(X){
+((6*X+1.8)*cos(3/(X+0.3)) - 9*sin(3/(X+0.3)))/(X+0.3)^4
+}
+```
+Calculating the kernel and its itegrations
+```{r}
+
+density_square <- function(x){
+  (1/2*pi)*exp(-(x)^2)
+}
+density_with_x <- function(x){
+  (x^2) * (1/(2*pi)^0.5)*exp(-(x^2)/2)
+}
+
+kernel_sq_integrate <- integrate(density_square, lower = -Inf, upper = Inf)$value
+kernel_x2_integrate <- integrate(density_with_x, lower= -Inf, upper = Inf)$value
+
+
+```
+Calculate h_opt at a random point X, sample size n, beta paras shape1, shape2
+```{r}
+h_opt <- function(x, n, shape1, shape2){
+  
+  fx <- dgamma(x, shape1, shape2)
+  second <- ((ddm_ddx(x) * kernel_x2_integrate)^2)*fx
+  
+  full <-(((1/n)*kernel_sq_integrate)/second)^0.2
+  return(full)
+}
+
+
+```
+Now we will plot the data
+First, we keep the Shape constant, while varying n and x
+
+```{r , echo=FALSE}
+xs <- seq(0, 10, by=0.1)
+ns <- c(30, 50, 100, 500, 1000)
+
+h_opt_nx <- function(x, n){
+  return(h_opt(x, n, 10, 10))
+}
+
+res <- mapply(h_opt_nx, list(xs), ns)
+
+cols <- c("black", "cornflowerblue", "orange", "red", "blue")
+matplot(xs, res, col=cols, type="l", lty=1, lwd=2, xlab="x", ylab="optimal h")
+legend("topleft", legend=ns, title="value of n", lwd=2, col=cols)
+ 
+```
+
+Different shape 1 and 2, while n is constant = 100
+First, we put shape2 constant = 3
+```{r , echo=FALSE}
+
+h_opt_shape1 <- function(x, shape1){
+  return(h_opt(x, 100, shape1, 3))
+}
+shape1s <- c(3, 5, 10, 50, 100)
+
+res <- mapply(h_opt_shape1, list(xs), shape1s)
+
+cols <- c("black", "cornflowerblue", "orange", "red", "blue")
+matplot(xs, res, col=cols, type="l", lty=1, lwd=2, xlab="x", ylab="optimal h")
+legend("topleft", legend=ns, title="value of shape1", lwd=2, col=cols)
+```
+
+shape2 = 5
+```{r , echo=FALSE}
+
+h_opt_shape1 <- function(x, shape1){
+  return(h_opt(x, 100, shape1, 5))
+}
+shape1s <- c(3, 5, 10, 50, 100)
+
+res <- mapply(h_opt_shape1, list(xs), shape1s)
+
+cols <- c("black", "cornflowerblue", "orange", "red", "blue")
+matplot(xs, res, col=cols, type="l", lty=1, lwd=2, xlab="x", ylab="optimal h")
+legend("topleft", legend=ns, title="value of shape1", lwd=2, col=cols)
+
+```
+
+shape2 = 10
+```{r , echo=FALSE}
+
+h_opt_shape1 <- function(x, shape1){
+  return(h_opt(x, 100, shape1, 10))
+}
+shape1s <- c(3, 5, 10, 50, 100)
+
+res <- mapply(h_opt_shape1, list(xs), shape1s)
+
+cols <- c("black", "cornflowerblue", "orange", "red", "blue")
+matplot(xs, res, col=cols, type="l", lty=1, lwd=2, xlab="x", ylab="optimal h")
+legend("topleft", legend=ns, title="value of shape1", lwd=2, col=cols)
+```
+
+shape2 = 50
+```{r , echo=FALSE}
+
+h_opt_shape1 <- function(x, shape1){
+  return(h_opt(x, 100, shape1, 50))
+}
+shape1s <- c(3, 5, 10, 50, 100)
+
+res <- mapply(h_opt_shape1, list(xs), shape1s)
+
+cols <- c("black", "cornflowerblue", "orange", "red", "blue")
+matplot(xs, res, col=cols, type="l", lty=1, lwd=2, xlab="x", ylab="optimal h")
+legend("topleft", legend=ns, title="value of shape1", lwd=2, col=cols)
+```
+
+shape2 = 100
+```{r , echo=FALSE}
+
+h_opt_shape1 <- function(x, shape1){
+  return(h_opt(x, 100, shape1, 100))
+}
+shape1s <- c(3, 5, 10, 50, 100)
+
+res <- mapply(h_opt_shape1, list(xs), shape1s)
+
+cols <- c("black", "cornflowerblue", "orange", "red", "blue")
+matplot(xs, res, col=cols, type="l", lty=1, lwd=2, xlab="x", ylab="optimal h")
+legend("topleft", legend=ns, title="value of shape1", lwd=2, col=cols)
+```
