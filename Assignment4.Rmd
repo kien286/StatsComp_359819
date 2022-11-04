@@ -1,0 +1,72 @@
+---
+title: "Assignment4"
+output: html_document
+date: "2022-10-30"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Import packages and data 
+
+
+```{r, echo=FALSE}
+
+library(MASS)
+data(mcycle)
+mcycle <- mcycle[mcycle$times <=40, ]
+
+mcycle$times <- as.numeric(mcycle$times)
+mcycle$accel <- as.numeric(mcycle$accel)
+
+plot(mcycle$times, mcycle$accel)
+
+```
+
+
+```{r}
+library(locpol)
+
+epanechnik <- function(x) 3/4*(1-x^2)*I(-1 <= x)*I(x <= 1)
+
+lp <- locpol(accel~times, deg=2, data=mcycle, xeval=c(1), bw=3)
+
+
+```
+Let's do cross-validate and store in a df
+```{r}
+hs <- c()
+ps <- c()
+cv <- c()
+
+for (h in seq(3, 15, by=1)){
+  for (p in c(1, 2, 3)){
+    loss <- c()
+    for (i in seq(1, nrow(mcycle))){
+      lp <- locpol(accel~times, deg=p, data=mcycle[-c(i),], xeval=mcycle[i, 'times'], bw=h)
+      dif <-(fitted(lp) - mcycle[i, 'accel'])^2
+      loss <- append(loss, dif)
+    }
+    avg_loss <- mean(loss)
+    
+    hs <- append(hs, h)
+    ps <- append(ps, p)
+    cv <- append(cv, avg_loss)
+    
+  }
+  
+}
+
+df <- data.frame(bandwidth <- hs, degree <- ps, cv_loss <- cv)
+
+```
+
+Plot the losses
+
+```{r, echo=FALSE}
+library(ggplot2)
+
+ggplot(data=df, mapping=aes(x=bandwidth, y=cv_loss, color=degree)) + geom_point(size=2) 
+```
+
+We see that the optimal values happeninf at degree 3, and bandwidth = 7. This seems to agrre with the shape of the original graph
