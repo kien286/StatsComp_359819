@@ -103,3 +103,5 @@ Plot the Likelihood
 ```{r pressure, echo=FALSE}
 plot(ls)
 ```
+
+The parameters output are 1080, 2020, 38200, 513000, and 0.3, which are far from the true parameters. However, the likelihood seems to have converged to a local maxima. This might due to stepping point of function optim. I have tried different starting points but the same thing happens.
