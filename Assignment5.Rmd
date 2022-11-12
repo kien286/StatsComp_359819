@@ -1,0 +1,105 @@
+---
+title: "Assignment5"
+output: html_document
+date: "2022-11-07"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Assignment 5
+
+This is to do assignment 5
+Create the Gaussian mixture distribution
+
+```{r}
+
+rmixnorm <- function(N, mu1, mu2, sigma1, sigma2, tau){
+  ind <- I(runif(N) > tau)
+  X <- rep(0,N)
+  X[ind] <- rnorm(sum(ind), mu1, sigma1)
+  X[!ind] <- rnorm(sum(!ind), mu2, sigma2)
+  return(X)
+}
+dmixnorm <- function(x, mu1, mu2, sigma1, sigma2, tau){
+  y <- (1-tau)*dnorm(x,mu1,sigma1) + tau*dnorm(x,mu2,sigma2)
+  return(y)
+}
+
+```
+Setting parameters, and obtain some data, stored in X
+```{r}
+N = 1000
+
+mu1s <- 3
+mu2s <- 0
+sigma1s <- 0.5
+sigma2s <- 1
+taus <- 0.6
+
+X <- rmixnorm(N, mu1s, mu2s, sigma1s, sigma2s, taus)
+
+```
+We also define some helpful functions.
+para contains (mu1, mu2, sigma1, sigma2, tau)
+```{r}
+
+estimate_p <- function(x, mu1, mu2, sigma1, sigma2, tau){
+  est_f <- (1-tau)*dnorm((x-mu1)/sigma1) + tau*dnorm((x-mu2)/sigma2)
+  y <- tau*dnorm((x-mu2)/sigma2)/est_f
+  return(y)
+}
+
+likelihood <- function(x, mu1, mu2, sigma1, sigma2, tau){
+  like <- log((1-tau)*dnorm((x-mu1)/sigma1) + tau*dnorm((x-mu2)/sigma2))
+  y <- sum(like)
+  return(y)
+}
+
+expect_likelihood <- function(para, x, para_prev){
+  ps <- estimate_p(x, para_prev[1], para_prev[2], para_prev[3], para_prev[4], para_prev[5])
+  
+  mu1 <- para[1]
+  mu2 <- para[2]
+  sigma1 <- para[3]
+  sigma2 <- para[4]
+  tau <- para[5]
+  
+  A <- log(1-tau)*(N-sum(ps)) + log(tau)*sum(ps)
+  B <- sum( (1-ps) *log(dnorm((x - mu1)/sigma1)) )
+  C <- sum( ps * log(dnorm((x-mu2)/sigma2)) )
+  
+  return(-(A+B+C))
+}
+
+```
+Initialize random, as well as caculate the likelihood.
+We then do EM for 50 times
+  
+```{r}
+mu1_pre <- 5
+mu2_pre <- -5
+sigma1_pre <- 2
+sigma2_pre <- 2
+tau_pre <- 0.5
+
+ls <- c(likelihood(X, mu1_pre, mu2_pre, sigma1_pre, sigma2_pre, tau_pre))
+
+para_prev <- c(mu1_pre, mu2_pre, sigma1_pre, sigma2_pre, tau_pre)
+
+for(i in seq(1, 50, by=1)){
+  
+  first <- c(5, -3, 2, 2, 0.5)
+  optim_best <- optim(first, expect_likelihood, x=X, para_prev=para_prev)
+  para_prev <- optim_best$par
+    
+  newl <- likelihood(X, para_prev[1], para_prev[2], para_prev[3], para_prev[4], para_prev[5])
+  ls <- append(ls, newl)
+}
+```
+Plot the Likelihood
+
+```{r pressure, echo=FALSE}
+plot(ls)
+```
