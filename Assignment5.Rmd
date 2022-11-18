@@ -46,13 +46,13 @@ para contains (mu1, mu2, sigma1, sigma2, tau)
 ```{r}
 
 estimate_p <- function(x, mu1, mu2, sigma1, sigma2, tau){
-  est_f <- (1-tau)*dnorm((x-mu1)/sigma1) + tau*dnorm((x-mu2)/sigma2)
-  y <- tau*dnorm((x-mu2)/sigma2)/est_f
+  est_f <- (1-tau)*dnorm(x, mu1, sigma1) + tau*dnorm(x, mu2, sigma2)
+  y <- tau*dnorm(x, mu2, sigma2)/est_f
   return(y)
 }
 
 likelihood <- function(x, mu1, mu2, sigma1, sigma2, tau){
-  like <- log((1-tau)*dnorm((x-mu1)/sigma1) + tau*dnorm((x-mu2)/sigma2))
+  like <- log((1-tau)*dnorm(x, mu1, sigma1) + tau*dnorm(x, mu2, sigma2))
   y <- sum(like)
   return(y)
 }
@@ -67,8 +67,8 @@ expect_likelihood <- function(para, x, para_prev){
   tau <- para[5]
   
   A <- log(1-tau)*(N-sum(ps)) + log(tau)*sum(ps)
-  B <- sum( (1-ps) *log(dnorm((x - mu1)/sigma1)) )
-  C <- sum( ps * log(dnorm((x-mu2)/sigma2)) )
+  B <- sum( (1-ps) * dnorm(x, mu1, sigma1, log = TRUE) )
+  C <- sum( ps * dnorm(x, mu2, sigma2, log = TRUE) )
   
   return(-(A+B+C))
 }
@@ -78,19 +78,29 @@ Initialize random, as well as caculate the likelihood.
 We then do EM for 50 times
   
 ```{r}
-mu1_pre <- 5
-mu2_pre <- -5
-sigma1_pre <- 2
+mu1_pre <- 3.3
+mu2_pre <- -0.1
+sigma1_pre <- 1
 sigma2_pre <- 2
-tau_pre <- 0.5
+tau_pre <- 0.4
 
 ls <- c(likelihood(X, mu1_pre, mu2_pre, sigma1_pre, sigma2_pre, tau_pre))
 
 para_prev <- c(mu1_pre, mu2_pre, sigma1_pre, sigma2_pre, tau_pre)
 
-for(i in seq(1, 50, by=1)){
+x <- seq(min(X), max(X), len = 100)
+
+for(i in seq(1, 5, by=1)){
   
-  first <- c(5, -3, 2, 2, 0.5)
+  #ALMOND: visualize what you are doing to see if somethings wrong and what!
+ {hist(X, freq = F)  
+ matlines(x, cbind(
+   dmixnorm(x, mu1s, mu2s, sigma1s, sigma2s, taus),
+   dmixnorm(x, para_prev[1], para_prev[2], para_prev[3], para_prev[4], para_prev[5])), t = "l")}
+
+   Sys.sleep(1)
+  
+  first <- para_prev#c(5, -3, 2, 2, 0.5)
   optim_best <- optim(first, expect_likelihood, x=X, para_prev=para_prev)
   para_prev <- optim_best$par
     
