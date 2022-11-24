@@ -1,0 +1,65 @@
+---
+title: "Assignment6"
+output: html_document
+date: "2022-11-19"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Get the samples using rnorm and calculate the KS
+
+
+```{r}
+X <- rnorm(10^5)
+F_hat <- ecdf(X)
+F_hat_eval <- F_hat(sort(X))
+F_eval <- pnorm(sort(X))
+KS_stats1 <- max(abs(F_hat_eval - F_eval))
+
+```
+Box-Muller method
+```{r}
+U1 <- runif(10^5)
+U2 <- runif(10^5)
+
+Z1 <- sqrt(-2*log(U1))*cos(2*pi*U2)
+
+F_hat <- ecdf(Z1)
+F_hat_eval <- F_hat(sort(Z1))
+F_eval <- pnorm(sort(Z1))
+KS_stats2 <- max(abs(F_hat_eval - F_eval))
+
+```
+Rejection and Acceptance
+
+```{r}
+# install.packages('ExtDist')
+library('ExtDist')
+smt <- rLaplace(10^5)
+c1 <- 3
+
+U3 <- runif(10^5)
+lapla <- dLaplace(smt)
+Norm <- dnorm(smt)
+thresh <- Norm/(c1*lapla)
+
+sample <- smt[U3<thresh]
+
+F_hat <- ecdf(sample)
+F_hat_eval <- F_hat(sort(sample))
+F_eval <- pnorm(sort(sample))
+KS_stats3 <- max(abs(F_hat_eval - F_eval))
+
+```
+Start comparing
+```{r}
+print('Output by dnorm')
+print(KS_stats1)
+print('Output by Box Muller')
+print(KS_stats2)
+print('Output by Reject and Accept')
+print(KS_stats3)
+```
+
+We can see that dnorm gives the lowest KS-test, which means they are closest to the Normal, which should be reasonable. The second one is Box-Muller, with not much different to dnorm. However, the results output by Reject and Accept is the largest value, suggesting they are the most different. This can be due to a smaller smaple size, as the process rejects some samples, making the data smaller. Another unseen reason is the KS-test being sensitive to outliers, and thus, we cannot be sure
