@@ -1,0 +1,112 @@
+---
+title: "Assignment7"
+output: html_document
+date: "2022-12-02"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Generate a sample X, just for function checking. 
+We also set alpha in this case
+
+```{r}
+alpha = 0.8
+
+X <- rexp(100, rate = 2)
+X
+```
+
+Do a simulation first for sanity check
+```{r}
+ci1 <- mean(X) + sd(X)*qnorm(alpha)/sqrt(length(X))
+
+ci2_vec <- c()
+ci2_sd <- c()
+for (i in seq(1, 2000)){
+  ss <- sample(X, size=100, replace=TRUE)
+  ci2_vec <- append(ci2_vec, mean(ss))
+  ci2_sd <- append(ci2_sd, sd(ss))
+}
+ci2_vec <- sqrt(length(X))*(ci2_vec - mean(X))/ci2_sd
+ci2 <- quantile(ci2_vec, probs=alpha, names=FALSE)
+ci2 <- mean(X) + sd(X)*ci2/sqrt(length(X))
+
+ci3_vec = c()
+for (i in seq(1, 2000)){
+  ss <- sample(X, size=100, replace=TRUE)
+  ci3_vec <- append(ci3_vec, mean(ss))
+}
+ci3_vec <- sqrt(length(X))*(ci3_vec - mean(X))
+ci3 <- quantile(ci3_vec, probs=alpha, names=FALSE)
+ci3 <- mean(X) + ci3/sqrt(length(X))
+
+ci4_vec = c()
+for (i in seq(1, 2000)){
+  ss <- sample(X, size=100, replace=TRUE)
+  ci4_vec <- append(ci4_vec, mean(ss))
+}
+ci4_vec <- sqrt(length(X))*(ci4_vec - mean(X))/sd(X)
+ci4 <- quantile(ci4_vec, probs=alpha, names=FALSE)
+ci4 <- mean(X) + sd(X)*ci2/sqrt(length(X))
+```
+
+Repeat for 1000 times
+ci1: asymptotic
+ci2: studentized
+ci3: non-studentized
+ci4: sample-truth
+
+```{r}
+hit_ci1 <- c()
+hit_ci2 <- c()
+hit_ci3 <- c()
+hit_ci4 <- c()
+
+for (i in seq(1, 1000)){
+  
+  X <- rexp(100, rate = 2)
+  
+  ci1 <- mean(X) + sd(X)*qnorm(alpha)/sqrt(length(X))
+
+  ci2_vec <- c()
+  ci2_sd <- c()
+  for (i in seq(1, 2000)){
+    ss <- sample(X, size=100, replace=TRUE)
+    ci2_vec <- append(ci2_vec, mean(ss))
+    ci2_sd <- append(ci2_sd, sd(ss))
+  }
+  ci2_vec <- sqrt(length(X))*(ci2_vec - mean(X))/ci2_sd
+  ci2 <- quantile(ci2_vec, probs=alpha, names=FALSE)
+  ci2 <- mean(X) + sd(X)*ci2/sqrt(length(X))
+  
+  ci3_vec = c()
+  for (i in seq(1, 2000)){
+    ss <- sample(X, size=100, replace=TRUE)
+    ci3_vec <- append(ci3_vec, mean(ss))
+  }
+  ci3_vec <- sqrt(length(X))*(ci3_vec - mean(X))
+  ci3 <- quantile(ci3_vec, probs=alpha, names=FALSE)
+  ci3 <- mean(X) + ci3/sqrt(length(X))
+  
+  ci4_vec = c()
+  for (i in seq(1, 2000)){
+    ss <- sample(X, size=100, replace=TRUE)
+    ci4_vec <- append(ci4_vec, mean(ss))
+  }
+  ci4_vec <- sqrt(length(X))*(ci4_vec - mean(X))/sd(X)
+  ci4 <- quantile(ci4_vec, probs=alpha, names=FALSE)
+  ci4 <- mean(X) + sd(X)*ci2/sqrt(length(X))
+  
+  if (ci1 >= 1/2){hit_ci1<-append(hit_ci1, 1)} else{hit_ci1<-append(hit_ci1, 0)}
+  if (ci2 >= 1/2){hit_ci2<-append(hit_ci2, 1)} else{hit_ci2<-append(hit_ci2, 0)}
+  if (ci3 >= 1/2){hit_ci3<-append(hit_ci3, 1)} else{hit_ci3<-append(hit_ci3, 0)}
+  if (ci4 >= 1/2){hit_ci4<-append(hit_ci4, 1)} else{hit_ci4<-append(hit_ci4, 0)}
+}
+```
+Let's see the results
+```{r}
+df <- data.frame(hit_ci1, hit_ci2, hit_ci3, hit_ci4)
+colMeans(df)
+```
