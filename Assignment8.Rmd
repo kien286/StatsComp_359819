@@ -1,0 +1,95 @@
+---
+title: "Assignment8"
+output: html_document
+date: "2022-12-15"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+
+generate_mcmc <- function(y){
+  x0 <- rnorm(1, mean=y, sd=0.6)
+  X <- c(x0)
+  for (i in seq(1, 10000)){
+    x <- rnorm(1, mean=y, sd=0.6)
+    x0 <- X[length(X)]
+    probs <- (dweibull(x, shape=2, scale=1.2)*dnorm(x0, mean=y, sd=0.6))/(dweibull(x0, shape=2, scale=1.2)*dnorm(x, mean=y, sd=0.6))
+    probs <- min(1, probs)
+    sss <- rbinom(1, 1, probs)
+    if (sss==1){X <- append(X, x)}
+    if (sss==0){X <- append(X, x0)}
+  }
+  X[-(1:1001)]
+}
+
+```
+true distribution
+```{r}
+dposterior <- function(x, y, scale = 1.2, sd = .6) {
+  # x: evaluation points of the density
+  # y: observation Y=y (length 1),
+  # scale: scale parameter of Weibull prior (shape=2 fixed)
+  # sd: standard deviation of Gaussian error (mean=0 fixed)
+  a <- 1/2*1/sd^2; c <- 1/scale^2
+  erf <- function(x) 2*pnorm(x*sqrt(2)) - 1
+  k <- ifelse(x >= 0, x * exp( -a * (x-y)^2 - c*x^2 ), 0)
+  n <- exp(-a*(y^2)) *
+    (sqrt(pi) * a * y * exp(a^2*y^2 / (a+c)) * 
+       (erf(a*y/sqrt(a+c)) + 1) + 
+       sqrt(a + c) ) / (2* (a+c)^(3/2))
+  k/n
+}
+```
+Plot for y=0.5
+
+```{r, echo=FALSE}
+xd <- generate_mcmc(0.5)
+hisA <- hist(xd, freq=FALSE, ylim=c(0, 1))
+xfit <- seq(min(xd),max(xd),length=100)
+ynorm <- dnorm(xfit,mean=0.5, sd=0.6)
+ypost <- dposterior(xfit, y=0.5)
+
+lines(xfit, ynorm, col="blue", lwd=2)
+lines(xfit, ypost, col="red", lwd=2)
+
+legend(x=2, y=1, legend=c("proposal", "posterior"), 
+       fill = c("blue","red"))
+```
+
+Plot for y=1
+
+```{r, echo=FALSE}
+xd <- generate_mcmc(1)
+hisA <- hist(xd, freq=FALSE, ylim=c(0, 1))
+xfit <- seq(min(xd),max(xd),length=100)
+ynorm <- dnorm(xfit,mean=1, sd=0.6)
+ypost <- dposterior(xfit, y=1)
+
+lines(xfit, ynorm, col="blue", lwd=2)
+lines(xfit, ypost, col="red", lwd=2)
+
+legend(x=2, y=1, legend=c("proposal", "posterior"), 
+       fill = c("blue","red"))
+```
+
+Plot for y=2
+
+```{r, echo=FALSE}
+xd <- generate_mcmc(2)
+hisA <- hist(xd, freq=FALSE, ylim=c(0, 1))
+xfit <- seq(min(xd),max(xd),length=100)
+ynorm <- dnorm(xfit,mean=2, sd=0.6)
+ypost <- dposterior(xfit, y=2)
+
+lines(xfit, ynorm, col="blue", lwd=2)
+lines(xfit, ypost, col="red", lwd=2)
+
+legend(x=2, y=1, legend=c("proposal", "posterior"), 
+       fill = c("blue","red"))
+```
+
