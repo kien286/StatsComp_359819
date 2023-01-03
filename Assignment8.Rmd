@@ -18,7 +18,12 @@ generate_mcmc <- function(y){
   for (i in seq(1, 10000)){
     x <- rnorm(1, mean=y, sd=0.6)
     x0 <- X[length(X)]
-    probs <- (dweibull(x, shape=2, scale=1.2)*dnorm(x0, mean=y, sd=0.6))/(dweibull(x0, shape=2, scale=1.2)*dnorm(x, mean=y, sd=0.6))
+    probs <- (dweibull(x, shape=2, scale=1.2)*
+                dnorm(y, mean=x, sd=0.6)* # ALMOND: Missing likelihood added for x
+                dnorm(x0, mean=y, sd=0.6))/
+  (dweibull(x0, shape=2, scale=1.2)*
+     dnorm(y, mean=x0, sd=0.6)* # ALMOND: Missing likelihood added for x0
+     dnorm(x, mean=y, sd=0.6))
     probs <- min(1, probs)
     sss <- rbinom(1, 1, probs)
     if (sss==1){X <- append(X, x)}
